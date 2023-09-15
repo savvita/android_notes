@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SignInActivity extends AppCompatActivity {
+    private static final String LOG_TAG = "SignInActivity_tag";
     private TextInputEditText username;
     private TextInputEditText password;
     private Button signInBtn;
@@ -56,7 +58,7 @@ public class SignInActivity extends AppCompatActivity {
         new Thread(() -> {
             Response<User> response = AuthController.login(model);
             if(response == null) {
-                signInBtn.post(() -> Toast.makeText(this, R.string.registration_failed, Toast.LENGTH_LONG).show());
+                signInBtn.post(() -> Toast.makeText(this, R.string.authorization_failed, Toast.LENGTH_LONG).show());
             } else {
                 signInBtn.post(() -> {
                     Toast.makeText(this, "Success", Toast.LENGTH_LONG).show();
@@ -65,7 +67,7 @@ public class SignInActivity extends AppCompatActivity {
                     SharedPreferences settings = getSharedPreferences(AppConfig.APP_PREFERENCES, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = settings.edit();
                     editor.putString(AppConfig.APP_PREFERENCES_TOKEN, response.getToken());
-                    if(response.getValue().getTags().size() > 0) {
+                    if(response.getValue().getTags() != null && response.getValue().getTags().size() > 0) {
                         editor.putString(AppConfig.APP_PREFERENCES_TAGS, String.join(";", response.getValue().getTags()));
                     }
                     editor.apply();

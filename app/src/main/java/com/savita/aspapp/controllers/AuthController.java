@@ -20,7 +20,7 @@ public class AuthController {
             return APIController.post(AppConfig.API_URL + "/auth/register", jsonObj, (str) -> {
                 try {
                     return JSONParser.getResponseOfUser(str);
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     Log.d(LOG_TAG, e.getMessage());
                 }
                 return null;
@@ -37,13 +37,13 @@ public class AuthController {
             return APIController.post(AppConfig.API_URL + "/auth", jsonObj, (str) -> {
                 try {
                     return JSONParser.getResponseOfUser(str);
-                } catch (JSONException e) {
-                    Log.d(LOG_TAG, e.getMessage());
+                } catch (Exception e) {
+                    Log.d(LOG_TAG, e.getMessage(), e);
                 }
                 return null;
             }, null);
         } catch(Exception ex) {
-            Log.d(LOG_TAG, ex.getMessage());
+            Log.d(LOG_TAG, ex.getMessage(), ex);
             return null;
         }
     }

@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,6 +34,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class NotesListActivity extends AppCompatActivity {
+    private static final String LOG_TAG = "NotesListActivity_tag";
     private List<Note> notes;
     private List<Note> selectedNotes;
     private ListView notesView;
@@ -68,6 +70,7 @@ public class NotesListActivity extends AppCompatActivity {
         notesView.setAdapter(adapter);
 
         preferences = getSharedPreferences(AppConfig.APP_PREFERENCES, Context.MODE_PRIVATE);
+        refresh();
         initializeTags();
     }
 
@@ -97,6 +100,13 @@ public class NotesListActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        initializeTags();
+        refresh();
+        super.onResume();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
         getMenuInflater().inflate(R.menu.main_menu, menu);
@@ -122,6 +132,7 @@ public class NotesListActivity extends AppCompatActivity {
             if(tagsStr != null) {
                 tags.addAll(Arrays.stream(tagsStr.split(";")).collect(Collectors.toList()));
             }
+            Log.d(LOG_TAG, tagsStr);
         }
 
         tagAdapter = new TagAdapter(this, tags, (tag) -> filterByTag(tag));
@@ -143,13 +154,6 @@ public class NotesListActivity extends AppCompatActivity {
         editor.commit();
         Intent intent = new Intent(this, SignInActivity.class);
         startActivity(intent);
-    }
-
-    @Override
-    protected void onResume() {
-        refresh();
-        initializeTags();
-        super.onResume();
     }
 
     private void refresh() {

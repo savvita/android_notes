@@ -1,5 +1,6 @@
 package com.savita.aspapp.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class User {
@@ -7,7 +8,7 @@ public class User {
     private String firstName;
     private String secondName;
     private String lastName;
-    private List<String> tags;
+    private List<String> tags = new ArrayList<>();
 
     public List<String> getTags() {
         return tags;

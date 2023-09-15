@@ -6,6 +6,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -21,6 +23,7 @@ import com.savita.aspapp.R;
 import com.savita.aspapp.configs.AppConfig;
 import com.savita.aspapp.controllers.NoteController;
 import com.savita.aspapp.models.Note;
+import com.savita.aspapp.models.Response;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +37,7 @@ public class NoteAdapter extends ArrayAdapter<Note> {
     private Notification onDataChanged;
     private static final String LOG_TAG = "NoteAdapter_tag";
     private Consumer<String> onTagClick;
+    private Animation fadeOutAnimation;
 
     public NoteAdapter(@NonNull Context context, int resource, List<Note> notes, Consumer<String> onTagClick) {
         super(context, resource);
@@ -42,6 +46,9 @@ public class NoteAdapter extends ArrayAdapter<Note> {
         this.layout = resource;
         this.notes = notes;
         this.onTagClick = onTagClick;
+        this.fadeOutAnimation = AnimationUtils.loadAnimation(context, R.anim.fade_out);
+        this.fadeOutAnimation.setAnimationListener(new FadeOutAnimation());
+        this.fadeOutAnimation.setFillAfter(true);
     }
 
     public Notification getOnDataChanged() {
@@ -73,7 +80,7 @@ public class NoteAdapter extends ArrayAdapter<Note> {
 
         holder.title.setText(note.getTitle());
         holder.date.setText(AppConfig.dateFormat.format(note.getDate()));
-        holder.removeBtn.setOnClickListener(view -> removeNote(note));
+        holder.removeBtn.setOnClickListener(view -> removeNote(view, note));
         holder.container.setOnClickListener(view -> openNoteActivity(note));
 
         if(note.getTags().size() > 0) {
@@ -98,18 +105,24 @@ public class NoteAdapter extends ArrayAdapter<Note> {
         context.startActivity(intent);
     }
 
-    private void removeNote(Note note) {
+    private void removeNote(View view, Note note) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(context.getResources().getString(R.string.delete_note))
                 .setMessage(context.getResources().getString(R.string.delete_note_confirmation))
                 .setPositiveButton(context.getResources().getString(R.string.yes), (dialog, which) -> {
                     new Thread(() -> {
-                        NoteController.remove(
+                        Response<Boolean> response = NoteController.remove(
                                 note,
                                 context.getSharedPreferences(AppConfig.APP_PREFERENCES, Context.MODE_PRIVATE)
                                         .getString(AppConfig.APP_PREFERENCES_TOKEN, null));
-                        if (onDataChanged != null) {
-                            onDataChanged.Notify();
+//                        if (onDataChanged != null) {
+//                            view.post(() -> view.startAnimation(fadeOutAnimation));
+//                            onDataChanged.Notify();
+//                        }
+                        if(response.getValue()) {
+                            if(view.getParent() instanceof View) {
+                                ((View)view.getParent()).startAnimation(fadeOutAnimation);
+                            }
                         }
                     }).start();
                 })
@@ -140,6 +153,26 @@ public class NoteAdapter extends ArrayAdapter<Note> {
             RecyclerView.LayoutManager manager = new LinearLayoutManager(context, RecyclerView.HORIZONTAL, false);
             tagsRecycler.setLayoutManager(manager);
             tagsRecycler.setAdapter(adapter);
+        }
+    }
+
+    private class FadeOutAnimation implements Animation.AnimationListener {
+
+        @Override
+        public void onAnimationStart(Animation animation) {
+
+        }
+
+        @Override
+        public void onAnimationEnd(Animation animation) {
+            if (onDataChanged != null) {
+                onDataChanged.Notify();
+            }
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {
+
         }
     }
 

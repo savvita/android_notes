@@ -21,17 +21,19 @@ import java.util.List;
 public class JSONParser {
     private static final String LOG_TAG = "JSONParser_tag";
     private JSONParser(){}
-    public static User getUser(String json) throws JSONException {
+    public static User getUser(String json) throws JSONException, ParseException {
         JSONObject objJson = new JSONObject(json);
         return getUser(objJson);
     }
 
-    public static User getUser(JSONObject objJson) throws JSONException {
+    public static User getUser(JSONObject objJson) throws JSONException, ParseException {
         User user = new User();
         user.setFirstName(objJson.getString("firstName"));
         user.setSecondName(objJson.getString("secondName"));
         user.setLastName(objJson.getString("lastName"));
         user.setUsername(objJson.getString("userName"));
+        JSONArray tagsObj = objJson.getJSONArray("tags");
+        user.getTags().addAll(getListOfTags(tagsObj));
         return user;
     }
 
@@ -110,7 +112,7 @@ public class JSONParser {
         return tags;
     }
 
-    public static Response<User> getResponseOfUser(String json) throws JSONException {
+    public static Response<User> getResponseOfUser(String json) throws JSONException, ParseException {
         Response<User> response = new Response<>();
         JSONObject objJson = new JSONObject(json);
 
